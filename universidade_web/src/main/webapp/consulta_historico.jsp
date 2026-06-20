@@ -11,7 +11,6 @@
 <meta charset="UTF-8">
 <title>Sistema Universitário - Histórico Docente</title>
 <style>
-    /* Estilização Geral com Paleta Premium Unificada */
     body { 
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
         margin: 0; 
@@ -19,8 +18,6 @@
         background-color: #f8fafc; 
         color: #334155;
     }
-    
-    /* Menu Universal Horizontal */
     .nav { 
         background-color: #1e293b; 
         padding: 15px 30px; 
@@ -38,10 +35,9 @@
     }
     .nav a.active { 
         color: #ffffff; 
-        border-bottom: 2px solid #ea580c; /* Destaque Laranja para Histórico */
+        border-bottom: 2px solid #ea580c; 
         padding-bottom: 5px; 
     }
-
     .main-content {
         padding: 30px;
     }
@@ -51,13 +47,11 @@
         margin-bottom: 25px;
         font-weight: 600;
     }
-    
     .container { 
         display: flex; 
         gap: 30px; 
         align-items: flex-start; 
     }
-    
     .card {
         background: #ffffff; 
         padding: 25px; 
@@ -73,7 +67,6 @@
         border-bottom: 2px solid #f1f5f9;
         padding-bottom: 10px;
     }
-    
     form { width: 320px; }
     label { 
         display: block; 
@@ -99,7 +92,6 @@
         border-color: #ea580c;
         outline: none;
     }
-    
     .btn-buscar { 
         background: #ea580c; 
         color: white; 
@@ -115,7 +107,6 @@
     .btn-buscar:hover { 
         background: #c2410c; 
     }
-    
     .table-container { flex-grow: 1; }
     table { 
         width: 100%; 
@@ -136,6 +127,13 @@
     }
     table tr:hover {
         background-color: #f8fafc;
+    }
+    /* Estilo customizado para a linha de totais acumulados */
+    .linha-totais {
+        background-color: #f8fafc;
+        font-weight: bold;
+        color: #0f172a;
+        border-top: 2px solid #cbd5e1;
     }
 </style>
 </head>
@@ -183,10 +181,12 @@
             </div>
 
             <div class="card table-container">
-                <h3>Histórico Académico</h3>
+                <h3>Histórico Acadêmico</h3>
                 <table>
                     <thead>
                         <tr>
+                            <th>Turma</th>
+                            <th>Semestre Letivo</th>
                             <th>Disciplina Ministrada</th>
                             <th>Carga Horária</th>
                             <th>Alunos Atendidos</th>
@@ -196,7 +196,7 @@
                     <%
                         String matriculaStr = request.getParameter("selProfessor");
                         if(matriculaStr == null || matriculaStr.isEmpty()) {
-                            out.println("<tr><td colspan='3' style='text-align:center; color:#94a3b8;'>Selecione um professor ao lado para gerar o relatório.</td></tr>");
+                            out.println("<tr><td colspan='5' style='text-align:center; color:#94a3b8;'>Selecione um professor ao lado para gerar o relatório.</td></tr>");
                         } else {
                             try {
                                 int matricula = Integer.parseInt(matriculaStr);
@@ -204,20 +204,37 @@
                                 List<Turma> historico = turmaDAO.listarHistoricoPorProfessor(matricula);
                                 
                                 if(historico.isEmpty()) {
-                                    out.println("<tr><td colspan='3' style='text-align:center; color:#ef4444; font-weight:500;'>Este professor ainda não possui turmas registradas.</td></tr>");
+                                    out.println("<tr><td colspan='5' style='text-align:center; color:#ef4444; font-weight:500;'>Este professor ainda não possui turmas registradas.</td></tr>");
                                 } else {
+                                    // Variáveis acumuladoras para a soma dos totais solicitada pelo professor
+                                    int totalCargaHoraria = 0;
+                                    int totalAlunosAtendidos = 0;
+                                    
                                     for(Turma t : historico) {
+                                        // Soma os valores de cada linha do loop
+                                        totalCargaHoraria += t.getDisciplina().getCargaHoraria();
+                                        totalAlunosAtendidos += t.getNumAlunos();
                     %>
                                         <tr>
+                                            <td><%= t.getIdTurma() %></td>
+                                            <td><span style="background-color: #e0f2fe; color: #0369a1; padding: 4px 8px; border-radius: 4px; font-size: 0.85rem; font-weight: bold;"><%= t.getSemestre() %></span></td>
                                             <td><b><%= t.getDisciplina().getNomeDisciplina() %></b></td>
                                             <td><%= t.getDisciplina().getCargaHoraria() %> horas</td>
                                             <td><%= t.getNumAlunos() %> alunos</td>
                                         </tr>
                     <%
                                     }
+                                    // Adiciona a linha de Totais Acumulados no final da tabela
+                    %>
+                                    <tr class="linha-totais">
+                                        <td colspan="3" style="text-align: right; padding-right: 20px;">TOTAL ACUMULADO:</td>
+                                        <td><%= totalCargaHoraria %> horas</td>
+                                        <td><%= totalAlunosAtendidos %> alunos</td>
+                                    </tr>
+                    <%
                                 }
                             } catch(Exception e) {
-                                out.println("<tr><td colspan='3' style='color:#ef4444;'>Erro ao processar histórico: " + e.getMessage() + "</td></tr>");
+                                out.println("<tr><td colspan='5' style='color:#ef4444;'>Erro ao processar histórico: " + e.getMessage() + "</td></tr>");
                             }
                         }
                     %>
