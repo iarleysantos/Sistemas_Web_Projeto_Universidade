@@ -13,7 +13,6 @@ public class TurmaDAO {
 
     // 1. CADASTRAR TURMA
     public void cadastrarTurma(Turma turma) throws Exception {
-        // SQL completo com as 6 colunas exatamente iguais ao phpMyAdmin
         String sql = "INSERT INTO turmas (codigo_turma, matricula_professor, codigo_disciplina, semestre, num_alunos, horario) VALUES (?, ?, ?, ?, ?, ?)";
         
         Connection conn = null;
@@ -40,12 +39,14 @@ public class TurmaDAO {
         }
     }
 
-    // 2. CONSULTAR HISTÓRICO
+    // 2. CONSULTAR HISTÓRICO (Atualizado para trazer o Semestre e Identificador da Turma)
     public List<Turma> listarHistoricoPorProfessor(int matriculaProfessor) throws Exception {
-        String sql = "SELECT d.nome_disciplina, d.carga_horaria, t.num_alunos " +
+        // SQL atualizado para trazer a identificação da turma e o semestre letivo
+        String sql = "SELECT t.codigo_turma, d.nome_disciplina, d.carga_horaria, t.num_alunos, t.semestre " +
                      "FROM turmas t " +
                      "INNER JOIN disciplinas d ON t.codigo_disciplina = d.codigo_disciplina " +
-                     "WHERE t.matricula_professor = ?";
+                     "WHERE t.matricula_professor = ? " +
+                     "ORDER BY t.semestre DESC";
                      
         List<Turma> lista = new ArrayList<>();
         Connection conn = null;
@@ -60,7 +61,9 @@ public class TurmaDAO {
             
             while (rst.next()) {
                 Turma t = new Turma();
+                t.setIdTurma(rst.getString("codigo_turma"));
                 t.setNumAlunos(rst.getInt("num_alunos"));
+                t.setSemestre(rst.getString("semestre"));
                 
                 Disciplina d = new Disciplina();
                 d.setNomeDisciplina(rst.getString("nome_disciplina"));
